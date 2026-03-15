@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Up•Te — Emploi du temps GL-S4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040b16;
+      --panel: #081528;
+      --panel-2: #0d1f3b;
+      --panel-3: #11284c;
+      --border: rgba(69, 216, 166, 0.14);
+      --text: #ebf4ff;
+      --muted: #8ba7cb;
+      --primary: #45d8a6;
+      --primary-soft: rgba(69, 216, 166, 0.15);
+      --success: #45d8a6;
+      --warning: #ffbf5e;
+      --danger: #ff7c8b;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 22px;
+      --sidebar-w: 292px;
+      --header-h: 88px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(69,216,166,.10), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(76,120,255,.14), transparent 22%),
+        linear-gradient(180deg, #04101d 0%, #020813 100%);
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #08172e 0%, #051124 100%);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 22px 18px;
+      gap: 20px;
+    }
+
+    .brand {
+      padding: 10px 8px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #2d8a5a, #45d8a6);
+      color: white;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      box-shadow: var(--shadow);
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      margin-top: 12px;
+      letter-spacing: .04em;
+    }
+
+    .nav-title {
+      color: #5f7da8;
+      font-size: .82rem;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      margin: 6px 8px 0;
+      font-weight: 700;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 14px 14px;
+      border-radius: 16px;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: .25s ease;
+    }
+
+    .nav-btn svg { opacity: .9; }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      color: #bfe7ff;
+      background: linear-gradient(90deg, rgba(69,216,166,.18), rgba(69,216,166,.08));
+      border-color: rgba(69,216,166,.16);
+      box-shadow: inset 3px 0 0 var(--primary);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .mini-card {
+      background: linear-gradient(180deg, rgba(16,37,73,.88), rgba(10,23,46,.9));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .theme-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+    }
+
+    .theme-pill {
+      background: rgba(69,216,166,.18);
+      color: #8fdfff;
+      border: 1px solid rgba(44,183,255,.15);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: .85rem;
+      font-weight: 700;
+    }
+
+    .credits-header,
+    .credits-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .credits-row { color: var(--muted); margin-top: 12px; }
+    .credits-value { color: #8fdfff; font-weight: 800; }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.06);
+      margin-top: 12px;
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 87%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #45d8a6, #7be6ff);
+    }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: var(--header-h);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px 18px 34px;
+      background: linear-gradient(180deg, rgba(11,28,53,.96), rgba(9,23,44,.94));
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-btn,
+    .primary-btn,
+    .chip-btn {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: rgba(17,39,76,.88);
+      border-radius: 16px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #2d8a5a, #45d8a6);
+      color: white;
+      border: none;
+      box-shadow: 0 12px 26px rgba(69,216,166,.22);
+    }
+
+    .ghost-btn:hover, .primary-btn:hover, .chip-btn:hover { transform: translateY(-1px); }
+
+    .content {
+      padding: 28px 34px 34px;
+      overflow: auto;
+      height: calc(100vh - var(--header-h));
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .stat-card, .panel {
+      background: linear-gradient(180deg, rgba(16,37,73,.92), rgba(10,23,46,.94));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card {
+      padding: 22px;
+      min-height: 170px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      right: -22px;
+      bottom: -22px;
+      width: 92px;
+      height: 92px;
+      background: radial-gradient(circle, rgba(69,216,166,.22), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    .stat-value {
+      margin-top: 20px;
+      font-size: clamp(2.1rem, 3vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -.05em;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.4fr;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .empty-day {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-day strong {
+      display: block;
+      color: #dcecff;
+      font-size: 1.7rem;
+      margin: 10px 0 6px;
+    }
+
+    .session-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .session-item,
+    .course-row,
+    .tip-card {
+      background: linear-gradient(180deg, rgba(8,22,42,.9), rgba(7,18,36,.95));
+      border: 1px solid rgba(69, 216, 166, 0.14);
+      border-radius: 18px;
+    }
+
+    .session-item {
+      display: flex;
+      gap: 14px;
+      padding: 16px;
+      align-items: center;
+    }
+
+    .session-bar {
+      width: 5px;
+      align-self: stretch;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #45d8a6, #82e8ff);
+      box-shadow: 0 0 20px rgba(69,216,166,.35);
+    }
+
+    .session-meta {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-top: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .82rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(69,216,166,.12);
+      color: #8fdfff;
+      border: 1px solid rgba(69,216,166,.1);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .tabs {
+      background: linear-gradient(180deg, rgba(16,37,73,.92), rgba(10,23,46,.94));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      overflow: hidden;
+      max-width: 460px;
+      width: 100%;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 16px 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: rgba(69,216,166,.10);
+      color: #98e7ff;
+      box-shadow: inset 0 0 0 1px rgba(69,216,166,.12);
+    }
+
+    .select,
+    .input,
+    .filter-btn {
+      background: linear-gradient(180deg, rgba(15,34,64,.95), rgba(10,22,42,.98));
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .schedule-week {
+      padding: 16px;
+    }
+
+    .week-board {
+      background: linear-gradient(180deg, rgba(7,18,36,.95), rgba(9,22,43,.98));
+      border: 1px solid rgba(69, 216, 166, .12);
+      border-radius: 22px;
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .week-grid {
+      min-width: 1100px;
+      display: grid;
+      grid-template-columns: 70px repeat(6, 1fr);
+      grid-template-rows: 55px repeat(14, 58px);
+      position: relative;
+      gap: 1px;
+    }
+
+    .corner,
+    .day-header,
+    .time-label,
+    .grid-cell {
+      border-right: 1px solid rgba(69,216,166,.08);
+      border-bottom: 1px solid rgba(69,216,166,.08);
+      background: rgba(69,216,166,.02);
+    }
+
+    .day-header {
+      display: grid;
+      place-items: center;
+      color: #8fdfff;
+      font-weight: 800;
+      letter-spacing: .08em;
+      background: rgba(69,216,166,.05);
+    }
+
+    .time-label {
+      color: #8fdfff;
+      font-size: .9rem;
+      padding-top: 6px;
+      text-align: right;
+      padding-right: 10px;
+      background: rgba(69,216,166,.03);
+    }
+
+    .grid-cell {
+      background: rgba(69,216,166,.01);
+      transition: background-color 0.2s ease;
+    }
+
+    .grid-cell:hover {
+      background: rgba(69,216,166,.05);
+    }
+
+    .event-block {
+      position: absolute;
+      margin: 4px;
+      border-radius: 16px;
+      padding: 10px 12px;
+      background: linear-gradient(180deg, rgba(69,216,166,.70), rgba(32,131,210,.62));
+      border: 1px solid rgba(180,236,255,.28);
+      box-shadow: 0 10px 24px rgba(24,130,214,.18);
+      overflow: hidden;
+    }
+
+    .event-block.online {
+      background: linear-gradient(180deg, rgba(88,159,255,.78), rgba(53,108,225,.62));
+      border-color: rgba(190,220,255,.35);
+    }
+
+    .event-code {
+      font-weight: 800;
+      font-size: .95rem;
+    }
+
+    .event-time {
+      margin-top: 2px;
+      font-size: .9rem;
+      opacity: .95;
+    }
+
+    .event-title {
+      margin-top: 8px;
+      font-size: .9rem;
+      line-height: 1.3;
+    }
+
+    .list-days {
+      display: grid;
+      gap: 18px;
+    }
+
+    .day-card {
+      overflow: hidden;
+    }
+
+    .day-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+
+    .day-card h3 { margin: 0; font-size: 1.7rem; }
+
+    .course-list {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .course-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .course-main {
+      display: flex;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #7fdfff;
+      margin-top: 7px;
+      box-shadow: 0 0 18px rgba(127,223,255,.45);
+      flex: 0 0 auto;
+    }
+
+    .course-time {
+      font-weight: 800;
+      color: #8fdfff;
+      margin-bottom: 4px;
+    }
+
+    .course-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .course-sub {
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: .94rem;
+    }
+
+    .course-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .tip-card {
+      padding: 22px;
+      min-height: 170px;
+    }
+
+    .tip-icon {
+      color: #7fdfff;
+      margin-bottom: 14px;
+    }
+
+    .tip-card h4 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+    }
+
+    .tip-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .label {
+      color: #9ab6d8;
+      font-size: .92rem;
+      font-weight: 600;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .planner-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .planner-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(8,22,42,.95), rgba(7,18,36,.98));
+      border: 1px solid rgba(69, 216, 166, 0.14);
+    }
+
+    .planner-item.done {
+      opacity: .75;
+      border-style: dashed;
+    }
+
+    .planner-left {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #7fdfff;
+      margin-top: 2px;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .planner-item.done .check {
+      background: linear-gradient(135deg, #1fd0a3, #50e0bd);
+      border-color: transparent;
+      box-shadow: 0 0 0 4px rgba(80,224,189,.12);
+    }
+
+    .planner-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tiny-btn {
+      border: 1px solid var(--border);
+      background: rgba(13,32,59,.9);
+      color: #d7e8ff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .online-badge {
+      background: rgba(88,159,255,.16);
+      color: #a7cfff;
+      border: 1px solid rgba(88,159,255,.14);
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: #6f8cb4;
+      font-size: .92rem;
+    }
+
+    @media (max-width: 1180px) {
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-grid { grid-template-columns: 1fr; }
+      .tips-grid, .form-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 920px) {
+      body { overflow: auto; }
+      .app { grid-template-columns: 1fr; }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+      .content { height: auto; }
+      .topbar { position: static; height: auto; align-items: flex-start; flex-direction: column; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-badge">
+          <span>🎓</span>
+          <span>Up•Te</span>
+        </div>
+        <small>EPL · UNIVERSITÉ DE LOMÉ</small>
+      </div>
+
+      <div class="nav-title">Navigation</div>
+      <nav class="nav" id="nav"></nav>
+
+      <div class="sidebar-footer">
+        <div class="mini-card theme-switch">
+          <span>☀️ Thème</span>
+          <button class="theme-pill" id="themeBtn">Vert</button>
+        </div>
+        <div class="mini-card">
+          <div class="credits-header">
+            <span class="muted">Crédits totaux</span>
+            <strong id="creditCount" class="credits-value">28 ECTS</strong>
+          </div>
+          <div class="progress"><span></span></div>
+          <div class="credits-row">
+            <span>Semestre 4</span>
+            <strong class="credits-value">2025–2026</strong>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Tableau de bord</h1>
+          <div class="subtitle">Licence Pro GL · Semestre 4</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-btn" id="todayBtn">🕒 <span id="todayLabel"></span></button>
+          <button class="primary-btn" data-open-planner>+ Planifier</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="view active" id="dashboardView"></div>
+        <div class="view" id="scheduleView"></div>
+        <div class="view" id="plannerView"></div>
+        <div class="view" id="tipsView"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const schedule = [
+      {
+        id: 'INF1425',
+        title: 'Généralités sur la sécurité informatique',
+        teacher: 'M. BARATE',
+        room: 'Salle Enseignement 1 DRSI',
+        day: 'Lundi',
+        start: '07:30',
+        end: '10:30',
+        credits: 3,
+        type: 'Présentiel',
+        color: 'standard'
+      },
+      {
+        id: 'INF1426',
+        title: "Modélisation UML",
+        teacher: 'M. HOETOWOU',
+        room: 'En ligne',
+        day: 'Lundi',
+        start: '16:00',
+        end: '19:00',
+        credits: 3,
+        type: 'En ligne',
+        color: 'online',
+      },
+      {
+        id: 'INF1429-MER',
+        title: 'Normes Documentaires',
+        teacher: 'M. ANAKPA',
+        room: 'En ligne',
+        day: 'Mercredi',
+        start: '08:00',
+        end: '12:00',
+        credits: 4,
+        type: 'En ligne',
+        color: 'online',
+      },
+      {
+        id: '1INF1423',
+        title: 'Administration Système Linux',
+        teacher: 'Dr TEPE',
+        room: 'Salle N°2 Amphi Ampah Johnson',
+        day: 'Mercredi',
+        start: '15:00',
+        end: '17:00',
+        credits: 2,
+        type: 'Présentiel',
+        color: 'standard'
+      },
+      {
+        id: '2INF1423',
+        title: 'Administration Système Windows',
+        teacher: 'M. BARATE',
+        room: 'Salle Enseignement 1 DRSI',
+        day: 'Jeudi',
+        start: '15:00',
+        end: '17:00',
+        credits: 2,
+        type: 'Présentiel',
+        color: 'standard'
+      },
+      {
+        id: 'DRT1420',
+        title: "Droit de l'informatique",
+        teacher: 'M. Kokohou',
+        room: 'Salle N°2 Amphi Ampah Johnson',
+        day: 'Vendredi',
+        start: '07:30',
+        end: '09:30',
+        credits: 2,
+        type: 'Présentiel',
+        color: 'standard'
+      },
+      {
+        id: 'CPT1420',
+        title: 'Comptabilité générale de base',
+        teacher: 'M. Lawson Boiro',
+        room: 'Salle N°2 Amphi Ampah Johnson',
+        day: 'Vendredi',
+        start: '10:00',
+        end: '12:00',
+        credits: 2,
+        type: 'Présentiel',
+        color: 'standard'
+      },
+      {
+        id: 'INF1421',
+        title: 'Administration de bases de données',
+        teacher: 'M. SALAMI Morou',
+        room: 'Salle N°2 Amphi Ampah Johnson',
+        day: 'Vendredi',
+        start: '14:30',
+        end: '17:30',
+        credits: 3,
+        type: 'Présentiel',
+        color: 'standard'
+      },
+      {
+        id: 'INF1426-SAM',
+        title: "Développement d'applications de bureau",
+        teacher: 'M. HOETOWOU',
+        room: 'En ligne',
+        day: 'Samedi',
+        start: '08:00',
+        end: '12:00',
+        credits: 4,
+        type: 'En ligne',
+        color: 'online',
+      }
+    ];
+
+    const plannerSeed = [
+      {
+        id: crypto.randomUUID(),
+        title: 'Révision Structure de Données',
+        course: 'INF1427',
+        day: 'Dimanche',
+        time: '08:00',
+        duration: '3h',
+        type: 'Exercices',
+        done: false
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'TP Normes Documentaires',
+        course: 'INF1429',
+        day: 'Mardi',
+        time: '08:00',
+        duration: '3h',
+        type: 'TP',
+        done: false
+      }
+    ];
+
+    const tips = [
+      {
+        icon: '⏱️',
+        title: 'Méthode Pomodoro',
+        text: 'Travaillez 25 minutes intensément, puis faites 5 minutes de pause. Après 4 cycles, prenez 15 à 30 minutes. Idéal pour Structure de Données, UML et les cours techniques.'
+      },
+      {
+        icon: '👥',
+        title: 'Groupes d\'étude',
+        text: 'Formez des groupes de 3 à 4 personnes pour les UE difficiles. Les explications entre camarades renforcent la compréhension, surtout pour UML et le développement d\'applications.'
+      },
+      {
+        icon: '🗓️',
+        title: 'Planifiez vos révisions à l\'avance',
+        text: 'Commencez les révisions 3 semaines avant les évaluations. Donnez plus de temps aux cours à 4 crédits comme INF1426 et INF1429.'
+      },
+      {
+        icon: '💻',
+        title: 'Pratiquez régulièrement',
+        text: 'Pour Linux, Windows et le développement de bureau, pratiquez hors des heures de cours. Installez une VM et refaites les manipulations vues en classe.'
+      },
+      {
+        icon: '🔁',
+        title: 'Répétition espacée',
+        text: 'Révisez un sujet le lendemain, puis 3 jours plus tard, puis une semaine après. Très efficace pour Administration BDD et Droit de l\'informatique.'
+      },
+      {
+        icon: '🧠',
+        title: 'Utilisez des schémas',
+        text: 'Les cours comme UML et Normes Documentaires se retiennent mieux avec des diagrammes, cartes mentales et résumés visuels.'
+      },
+      {
+        icon: '🎯',
+        title: 'Priorisez selon les crédits',
+        text: 'INF1426 et INF1429 méritent le plus de temps. Ensuite viennent INF1425, INF1427, INF1428 et INF1421.'
+      },
+      {
+        icon: '🌅',
+        title: 'Exploitez les créneaux libres',
+        text: 'Les matinées ou après-midis sans cours sont idéales pour relire, avancer les projets et faire les exercices sans pression.'
+      }
+    ];
+
+    const navItems = [
+      { key: 'dashboard', label: 'Tableau de bord', icon: '▦' },
+      { key: 'schedule', label: 'Emploi du temps', icon: '🗓️' },
+      { key: 'planner', label: 'Planificateur', icon: '✎' },
+      { key: 'tips', label: 'Conseils révision', icon: '❕' }
+    ];
+
+    const views = {
+      dashboard: document.getElementById('dashboardView'),
+      schedule: document.getElementById('scheduleView'),
+      planner: document.getElementById('plannerView'),
+      tips: document.getElementById('tipsView')
+    };
+
+    const state = {
+      currentView: 'dashboard',
+      scheduleMode: 'week',
+      theme: 'vert',
+      planner: JSON.parse(localStorage.getItem('upte-planner') || 'null') || plannerSeed
+    };
+
+    const dayOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const fullWeek = ['Dimanche', ...dayOrder];
+
+    function savePlanner() {
+      localStorage.setItem('upte-planner', JSON.stringify(state.planner));
+    }
+
+    function minutesFromTime(value) {
+      const [h, m] = value.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function hoursBetween(start, end) {
+      return (minutesFromTime(end) - minutesFromTime(start)) / 60;
+    }
+
+    function dayCourses(day) {
+      return schedule
+        .filter(item => item.day === day)
+        .sort((a, b) => minutesFromTime(a.start) - minutesFromTime(b.start));
+    }
+
+    function getTodayName() {
+      const names = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      return names[new Date().getDay()];
+    }
+
+    function formatToday() {
+      return new Date().toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short'
+      }).replace(/^./, c => c.toUpperCase());
+    }
+
+    function totalCredits() {
+      return schedule.reduce((sum, item) => sum + (item.credits || 0), 0);
+    }
+
+    function weeklyHours() {
+      return schedule.reduce((sum, item) => sum + hoursBetween(item.start, item.end), 0);
+    }
+
+    function onlineCount() {
+      return schedule.filter(item => item.type === 'En ligne').length;
+    }
+
+    function presentielCount() {
+      return schedule.filter(item => item.type === 'Présentiel').length;
+    }
+
+    function buildNav() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = navItems.map(item => `
+        <button class="nav-btn ${state.currentView === item.key ? 'active' : ''}" data-view="${item.key}">
+          <span>${item.icon}</span>
+          <span>${item.label}</span>
+        </button>
+      `).join('');
+
+      nav.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+      });
+    }
+
+    function switchView(view) {
+      state.currentView = view;
+      Object.entries(views).forEach(([key, el]) => {
+        el.classList.toggle('active', key === view);
+      });
+      const titles = {
+        dashboard: 'Tableau de bord',
+        schedule: 'Emploi du temps',
+        planner: 'Planificateur',
+        tips: 'Conseils de révision'
+      };
+      document.getElementById('pageTitle').textContent = titles[view];
+      buildNav();
+      render();
+    }
+
+    function renderDashboard() {
+      const today = getTodayName();
+      const todayCourses = dayCourses(today);
+      const upcomingSessions = state.planner.filter(item => !item.done).slice(0, 4);
+
+      views.dashboard.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div>📘</div>
+            <div class="stat-value">${new Set(schedule.filter(c => !c.id.includes('-')).map(c => c.id)).size}</div>
+            <div class="stat-label">Unités d’enseignement<br><span class="muted">${totalCredits()} crédits</span></div>
+          </div>
+          <div class="stat-card">
+            <div>📅</div>
+            <div class="stat-value">${todayCourses.length}</div>
+            <div class="stat-label">Cours aujourd’hui</div>
+          </div>
+          <div class="stat-card">
+            <div>🕒</div>
+            <div class="stat-value">${weeklyHours()}h</div>
+            <div class="stat-label">Heures de cours / semaine</div>
+          </div>
+          <div class="stat-card">
+            <div>✏️</div>
+            <div class="stat-value">${state.planner.length}</div>
+            <div class="stat-label">Sessions planifiées<br><span class="muted">révisions</span></div>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>• Aujourd’hui</h3>
+            </div>
+            ${todayCourses.length ? `
+              <div class="course-list">
+                ${todayCourses.map(course => courseListItem(course)).join('')}
+              </div>
+            ` : `
+              <div class="empty-day">
+                <div>
+                  <div style="font-size:3rem">📖</div>
+                  <strong>Pas de cours aujourd’hui</strong>
+                  <div>Profitez-en pour réviser !</div>
+                </div>
+              </div>
+            `}
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Sessions de révision</h3>
+              <button class="chip-btn" data-open-planner>Voir tout</button>
+            </div>
+            <div class="session-list">
+              ${upcomingSessions.length ? upcomingSessions.map(item => `
+                <div class="session-item">
+                  <div class="session-bar"></div>
+                  <div>
+                    <div style="font-size:1.15rem;font-weight:700">${item.title}</div>
+                    <div class="session-meta">${item.day} · ${item.time} · ${item.duration} · <span class="pill">${item.type}</span></div>
+                  </div>
+                </div>
+              `).join('') : `<div class="empty-day" style="min-height:220px"><div><strong>Aucune session</strong><div>Ajoutez-en dans le planificateur.</div></div></div>`}
+            </div>
+          </div>
+        </div>
+      `;
+
+      bindPlannerOpeners();
+    }
+
+    function courseListItem(course) {
+      return `
+        <div class="course-row">
+          <div class="course-main">
+            <span class="dot"></span>
+            <div>
+              <div class="course-time">${course.start} – ${course.end}</div>
+              <div class="course-title">${course.title}</div>
+              <div class="course-sub">
+                <span class="pill">${course.id}</span>
+                <span>${course.teacher}</span>
+                <span>• ${course.room}</span>
+              </div>
+              ${course.note ? `<div class="footer-note">${course.note}</div>` : ''}
+            </div>
+          </div>
+          <div class="course-tags">
+            <span class="pill ${course.type === 'En ligne' ? 'online-badge' : ''}">${course.type}</span>
+            ${course.credits ? `<span class="pill">${course.credits}cr</span>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSchedule() {
+      views.schedule.innerHTML = `
+        <div class="toolbar">
+          <div class="tabs">
+            <button class="tab-btn ${state.scheduleMode === 'week' ? 'active' : ''}" data-mode="week">Semaine</button>
+            <button class="tab-btn ${state.scheduleMode === 'list' ? 'active' : ''}" data-mode="list">Liste</button>
+          </div>
+          <select class="select" id="teacherFilter">
+            <option value="all">Tous les enseignants</option>
+            <option value="M. HOETOWOU">M. HOETOWOU</option>
+            <option value="M. ANAKPA">M. ANAKPA</option>
+            <option value="online">Cours en ligne</option>
+          </select>
+        </div>
+        <div id="scheduleContainer"></div>
+      `;
+
+      document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.scheduleMode = btn.dataset.mode;
+          renderSchedule();
+        });
+      });
+
+      document.getElementById('teacherFilter').addEventListener('change', renderScheduleBody);
+      renderScheduleBody();
+    }
+
+    function getFilteredSchedule() {
+      const filter = document.getElementById('teacherFilter')?.value || 'all';
+      if (filter === 'all') return [...schedule];
+      if (filter === 'online') return schedule.filter(item => item.type === 'En ligne');
+      return schedule.filter(item => item.teacher === filter);
+    }
+
+    function renderScheduleBody() {
+      const items = getFilteredSchedule();
+      const container = document.getElementById('scheduleContainer');
+      if (state.scheduleMode === 'week') {
+        container.innerHTML = renderWeekBoard(items);
+      } else {
+        container.innerHTML = renderListBoard(items);
+      }
+    }
+
+    function renderWeekBoard(items) {
+      const visibleDays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      const startHour = 7;
+      const endHour = 19;
+      const rowHeight = 58;
+      const headerHeight = 55;
+      const timeCol = 70;
+      const colWidthPercent = (100 / 6);
+
+      const headers = visibleDays.map((day, i) => `<div class="day-header" style="grid-column:${i + 2};grid-row:1">${day.slice(0,3).toUpperCase()}</div>`).join('');
+      const labels = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+        const hour = startHour + i;
+        return `
+          <div class="time-label" style="grid-column:1;grid-row:${i + 2}">${String(hour).padStart(2,'0')}h</div>
+          ${visibleDays.map((_, dayIndex) => `<div class="grid-cell" style="grid-column:${dayIndex + 2};grid-row:${i + 2}"></div>`).join('')}
+        `;
+      }).join('');
+
+      const events = items.map(item => {
+        const dayIndex = visibleDays.indexOf(item.day);
+        if (dayIndex === -1) return '';
+        const top = headerHeight + ((minutesFromTime(item.start) - startHour * 60) / 60) * rowHeight;
+        const height = hoursBetween(item.start, item.end) * rowHeight;
+        const left = timeCol + (dayIndex * ((1100 - timeCol) / visibleDays.length));
+        const width = ((1100 - timeCol) / visibleDays.length) - 8;
+        return `
+          <div class="event-block ${item.type === 'En ligne' ? 'online' : ''}" style="top:${top}px;left:${left}px;width:${width}px;height:${height}px">
+            <div class="event-code">${item.id}</div>
+            <div class="event-time">${item.start}–${item.end}</div>
+            <div class="event-title">${item.title}</div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="panel schedule-week">
+          <div class="panel-header">
+            <h3>🗓️ Semaine type — GL S4</h3>
+            <span class="pill">2025–2026</span>
+          </div>
+          <div class="week-board">
+            <div class="week-grid">
+              <div class="corner" style="grid-column:1;grid-row:1"></div>
+              ${headers}
+              ${labels}
+              ${events}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderListBoard(items) {
+      const blocks = dayOrder.concat('Dimanche').filter((v, i, arr) => arr.indexOf(v) === i).map(day => {
+        const courses = items.filter(item => item.day === day).sort((a, b) => minutesFromTime(a.start) - minutesFromTime(b.start));
+        if (!courses.length) return '';
+        return `
+          <div class="panel day-card">
+            <div class="day-card-header">
+              <h3>${day}</h3>
+              <span class="pill">${courses.length} cours</span>
+            </div>
+            <div class="course-list">
+              ${courses.map(courseListItem).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `<div class="list-days">${blocks}</div>`;
+    }
+
+    function renderPlanner() {
+      views.planner.innerHTML = `
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Créer une session de révision</h3>
+              <div class="footer-note">Organise tes révisions selon tes cours et tes disponibilités.</div>
+            </div>
+            <span class="pill">${state.planner.length} session(s)</span>
+          </div>
+
+          <form id="plannerForm" class="form-grid">
+            <div class="form-group">
+              <label class="label">Titre</label>
+              <input class="input" name="title" placeholder="Ex: Révision UML" required />
+            </div>
+            <div class="form-group">
+              <label class="label">Code UE</label>
+              <input class="input" name="course" placeholder="Ex: INF1428" required />
+            </div>
+            <div class="form-group">
+              <label class="label">Jour</label>
+              <select class="select" name="day" required>
+                ${fullWeek.map(day => `<option value="${day}">${day}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label">Heure</label>
+              <input class="input" type="time" name="time" required />
+            </div>
+            <div class="form-group">
+              <label class="label">Durée</label>
+              <select class="select" name="duration">
+                <option>1h</option>
+                <option>2h</option>
+                <option selected>3h</option>
+                <option>4h</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label">Type</label>
+              <select class="select" name="type">
+                <option>Révision</option>
+                <option>TP</option>
+                <option>Exercices</option>
+                <option>Projet</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <button class="primary-btn" type="submit">Ajouter la session</button>
+            </div>
+          </form>
+
+          <div class="planner-list" id="plannerList"></div>
+        </div>
+      `;
+
+      document.getElementById('plannerForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const item = Object.fromEntries(formData.entries());
+        state.planner.unshift({ id: crypto.randomUUID(), ...item, done: false });
+        savePlanner();
+        renderPlannerItems();
+        e.target.reset();
+      });
+
+      renderPlannerItems();
+    }
+
+    function renderPlannerItems() {
+      const list = document.getElementById('plannerList');
+      if (!list) return;
+
+      if (!state.planner.length) {
+        list.innerHTML = `<div class="empty-day" style="min-height:220px"><div><strong>Aucune session prévue</strong><div>Ajoute ta première session de travail.</div></div></div>`;
+        return;
+      }
+
+      list.innerHTML = state.planner.map(item => `
+        <div class="planner-item ${item.done ? 'done' : ''}">
+          <div class="planner-left">
+            <div class="check" data-toggle="${item.id}"></div>
+            <div>
+              <div style="font-size:1.05rem;font-weight:700">${item.title}</div>
+              <div class="course-sub">
+                <span class="pill">${item.course}</span>
+                <span>${item.day}</span>
+                <span>${item.time}</span>
+                <span>${item.duration}</span>
+                <span class="pill">${item.type}</span>
+              </div>
+            </div>
+          </div>
+          <div class="planner-actions">
+            <button class="tiny-btn" data-delete="${item.id}">Supprimer</button>
+          </div>
+        </div>
+      `).join('');
+
+      list.querySelectorAll('[data-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.planner = state.planner.map(item => item.id === btn.dataset.toggle ? { ...item, done: !item.done } : item);
+          savePlanner();
+          render();
+        });
+      });
+
+      list.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.planner = state.planner.filter(item => item.id !== btn.dataset.delete);
+          savePlanner();
+          render();
+        });
+      });
+    }
+
+    function renderTips() {
+      views.tips.innerHTML = `
+        <div class="panel" style="padding:22px">
+          <div class="panel-header">
+            <div>
+              <h3>Stratégies pour réussir le GL-S4</h3>
+              <div class="footer-note">Conseils inspirés de ton interface et adaptés à ton semestre.</div>
+            </div>
+            <span class="pill">${tips.length} conseils</span>
+          </div>
+          <div class="tips-grid">
+            ${tips.map(tip => `
+              <div class="tip-card">
+                <div class="tip-icon">${tip.icon}</div>
+                <h4>${tip.title}</h4>
+                <p>${tip.text}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function bindPlannerOpeners() {
+      document.querySelectorAll('[data-open-planner]').forEach(btn => {
+        btn.addEventListener('click', () => switchView('planner'));
+      });
+    }
+
+    function setupThemeToggle() {
+      const themeBtn = document.getElementById('themeBtn');
+      themeBtn.addEventListener('click', () => {
+        if (state.theme === 'vert') {
+          state.theme = 'violet';
+          document.documentElement.style.setProperty('--primary', '#8c7bff');
+          document.documentElement.style.setProperty('--primary-soft', 'rgba(140,123,255,.16)');
+          themeBtn.textContent = 'Violet';
+        } else {
+          state.theme = 'vert';
+          document.documentElement.style.setProperty('--primary', '#45d8a6');
+          document.documentElement.style.setProperty('--primary-soft', 'rgba(69, 216, 166, 0.15)');
+          themeBtn.textContent = 'Vert';
+        }
+      });
+    }
+
+    function render() {
+      document.getElementById('todayLabel').textContent = formatToday();
+      document.getElementById('creditCount').textContent = `${totalCredits()} ECTS`;
+      renderDashboard();
+      renderSchedule();
+      renderPlanner();
+      renderTips();
+    }
+
+    document.getElementById('todayBtn').addEventListener('click', () => switchView('schedule'));
+    setupThemeToggle();
+    buildNav();
+    render();
+  </script>
+</body>
+</html>
